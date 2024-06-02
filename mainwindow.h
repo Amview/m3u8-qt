@@ -44,7 +44,6 @@ public:
 
     QString baseUrl;
     QStringList dataList;
-
 public:
     MainWindow(QWidget *parent = nullptr);
     void keyPressEvent(QKeyEvent *event);
@@ -56,6 +55,8 @@ public:
     void initUi();
     void initConnect();
     void disPlayInfo(QStringList &list);
+
+
     ~MainWindow();
 signals:
     void pressEnter();

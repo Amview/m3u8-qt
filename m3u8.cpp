@@ -49,7 +49,7 @@ void M3u8::analysisM3u8() {
 bool M3u8::checkIsBack() {
     for (int i = 0; i < dataList.size(); i++) {
         QString s = dataList.at(i);
-        qDebug() << s;
+        // qDebug() << s;
         if (s.contains("#EXT-X-STREAM-INF")) {
             return true;
         }
@@ -68,11 +68,14 @@ int M3u8::countUrls() {
 }
 
 void M3u8::checkPlaySource() {
-    qDebug() << data;
-    qDebug() << "1" <<dataList;
+    // qDebug() << data;
+    // qDebug() << "1" <<dataList;
     for (int i = 0; i < dataList.size(); ++i) {
         if (!dataList[i].trimmed().startsWith("#")) {
-            playUrls.append(dataList[i]);
+            QString item = dataList[i];
+            if (!item.isEmpty()) {
+                playUrls.append(item);
+            }
         }
     }
 }

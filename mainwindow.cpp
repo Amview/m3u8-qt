@@ -31,7 +31,6 @@ MainWindow::~MainWindow() {
 
 }
 
-
 void MainWindow::setValue() {
     QString url = search->text();
     m3u8 = new M3u8(url);

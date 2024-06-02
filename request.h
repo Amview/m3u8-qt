@@ -12,7 +12,9 @@ public:
     // void qGet(QString url, std::function<void(QByteArray &data)> readyHandle,
     //           std::function<void(QByteArray &data)> finishedHandle);
 
-    QByteArray qGetSync(QString url);
+    // QByteArray qGetSync(QString url);
+
+    // void downloadFile();
 };
 
 #endif // REQUEST_H

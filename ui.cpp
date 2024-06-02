@@ -3,10 +3,13 @@
 #include "QtWidgets/qlabel.h"
 #include "QtWidgets/qsplitter.h"
 #include "buttoncellwidget.h"
+#include "filedownload.h"
 #include "mainwindow.h"
 #include "QHeaderView"
 #include "request.h"
+#include "setdialog.h"
 #include <future>
+#include <QMessageBox>
 
 void MainWindow::initData() {
     myMap["PROGRAM-ID"] = "标签";
@@ -153,7 +156,7 @@ void MainWindow::initConnect() {
             m3u8 = new M3u8(url1);
             qDebug() << "url1" << url1;
         }
-        qDebug() << m3u8->data;
+        // qDebug() << m3u8->data;
         QStringList dataList = QString::fromUtf8(m3u8->data).split("\n");
         this->dataList = dataList;
         table->setRowCount(m3u8->countUrls());
@@ -170,43 +173,26 @@ void MainWindow::initConnect() {
             if (item.trimmed().startsWith("#EXTINF")) {
                 QStringList itemInfoList = item.split(":");
                 QListWidgetItem *widgetItem = new QListWidgetItem();
-                widgetItem->setText(dataList[i+1]);
-                listWidget->addItem(widgetItem);
-                ++rowCount;
-            }
-        }
-    });
-
-    QObject::connect(download, &QPushButton::clicked, [this](){
-        qDebug() << "Downloaded";
-        for (int i = 0; i < this->m3u8->playUrls.size(); ++i) {
-            QUrl qurl(this->m3u8->baseUrl + "/" + this->m3u8->playUrls[i]);
-            request.setUrl(qurl);
-            if (reply != Q_NULLPTR) {
-                reply->deleteLater();
-            }
-            reply = manager.get(request);
-            qDebug() << reply->error();
-            qDebug() << "start get";
-            QString localFilePath = "/Users/hua/Desktop/dir/" + QString::number(i) + ".ts";
-            QObject::connect(reply, &QNetworkReply::finished, [this, &localFilePath]() {
-                qDebug() << localFilePath;
-                QFile file(localFilePath);
-                qDebug() << "下载文件";
-                if (file.open(QIODevice::WriteOnly)) {
-                    file.write(reply->readAll());
-                    file.close();
-                    qDebug() << "Downloaded and saved successfully!";
-                } else {
-                    qDebug() << "Failed to open local file for writing.";
+                QString item = dataList[i+1];
+                if (!item.isEmpty()) {
+                    widgetItem->setText(item);
+                    ++rowCount;
                 }
-                reply->deleteLater();
-            });
-
+                listWidget->addItem(widgetItem);
+            }
         }
     });
+    QObject::connect(download, &QPushButton::clicked, [this](){
+        // FileDownload fileDownload;
+        // for (int i = 0; i < 2; ++i) {
+        //     QString fullPath = this->m3u8->baseUrl + "/" + this->m3u8->playUrls[i];
+        //     qDebug() << "下载地址" << fullPath;
+        //     fileDownload.download(fullPath);
+        // }
 
-    // QObject::connect(this, &MainWindow::pressEnter, this, &MainWindow::setValue);
+        SetDialog setDialog(this);
+        setDialog.exec();
+    });
 
     QObject::connect(tbn_close, &QPushButton::clicked, [this](){
         close();
@@ -229,7 +215,6 @@ void MainWindow::disPlayInfo(QStringList &list) {
         QStringList infoList = item.split(":");
         if (infoList.length() == 2) {
             QStringList infoList1 = infoList[1].split(",");
-            qDebug() << infoList1;
             for (int i = 0; i < infoList1.size(); ++i) {
                 QString property = infoList1[i];
                 // qDebug() << property;
@@ -241,7 +226,7 @@ void MainWindow::disPlayInfo(QStringList &list) {
                     } else {
                         infoLayout->addRow((properties[0]), new QLabel(properties[1]));
                     }
-                    qDebug() << s;
+                    // qDebug() << s;
                 }
             }
         }

@@ -23,6 +23,8 @@ public:
     M3u8 *m3u8;
 public:
     QLineEdit *search;
+    QPushButton *settingsBtn;
+    QPushButton *aboutBtn;
     QPushButton *submit;
     QTextBrowser *textBrowre;
     QTableWidget *table;

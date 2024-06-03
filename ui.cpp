@@ -2,6 +2,7 @@
 #include "QtGui/qevent.h"
 #include "QtWidgets/qlabel.h"
 #include "QtWidgets/qsplitter.h"
+#include "aboutdialog.h"
 #include "buttoncellwidget.h"
 #include "filedownload.h"
 #include "mainwindow.h"
@@ -10,6 +11,7 @@
 #include "setdialog.h"
 #include <future>
 #include <QMessageBox>
+#include "setdialog.h"
 
 void MainWindow::initData() {
     myMap["PROGRAM-ID"] = "标签";
@@ -41,9 +43,11 @@ void MainWindow::initUi() {
     barLay->setSpacing(8);
     barLay->setContentsMargins(8, 8, 8, 8);
     barLay->setAlignment(Qt::AlignLeft);
+
     QWidget *barWidget = new QWidget();
     barWidget->update();
     barWidget->setLayout(barLay);
+
     // 主体布局
     QVBoxLayout *bodyLayout = new QVBoxLayout();
     QWidget *bodyWidget = new QWidget();
@@ -67,11 +71,6 @@ void MainWindow::initUi() {
     table->setStyleSheet("QTableWidgetItem { text-align: center; }");
     table->resizeColumnsToContents();
 
-    submit = new QPushButton();
-    submit->setText("下载");
-    submit->setStyleSheet("background-color: rgb(67, 151, 247);width:30px;"
-                          "color: white;border-radius:5px;padding: 5px 8px 5px 8px;");
-
     gridLayout = new QGridLayout(this);
     QWidget *gridWidget = new QWidget();
     gridWidget->setLayout(gridLayout);
@@ -88,8 +87,25 @@ void MainWindow::initUi() {
     tbn_close->setStyleSheet("height:12px;width:12px;border-radius: 6px;background-color: #61c654;");
     tbn_close->setText("");
 
+    aboutBtn = new QPushButton("");
+    aboutBtn->setIcon(QIcon(":/img/about.png"));
+    aboutBtn->setIconSize(QSize(25, 25));
+    aboutBtn->setCursor(Qt::PointingHandCursor); // 在按钮初始化或适当的地方设置
+    aboutBtn->setStyleSheet("QPushButton:hover {"
+                             "icon: url(:/img/about-hover.png); /* 鼠标悬停时的图标 */"
+                             "cursor：pointer；"
+                             "}");
+    settingsBtn = new QPushButton("");
+    settingsBtn->setIcon(QIcon(":/img/settings.png"));
+    settingsBtn->setIconSize(QSize(25, 25));
+    settingsBtn->setCursor(Qt::PointingHandCursor); // 在按钮初始化或适当的地方设置
+    settingsBtn->setStyleSheet("QPushButton:hover {"
+                            "icon: url(:/img/settings-hover.png); /* 鼠标悬停时的图标 */"
+                            "cursor：pointer；"
+                            "}");
+
     download = new QPushButton("下载");
-    download->setStyleSheet("background-color: rgb(67, 151, 247);width:30px;"
+    download->setStyleSheet("background-color: rgb(67, 151, 247);width:35px;height:30px;"
                           "color: white;border-radius:5px;padding: 5px 8px 5px 8px;");
 
     // 安装拖动事件处理器
@@ -127,14 +143,15 @@ void MainWindow::initUi() {
     barLay->addWidget(tbn_max);
     barLay->addWidget(tbn_close);
     barLay->addStretch(1);
+    barLay->addWidget(settingsBtn);
+    barLay->addWidget(aboutBtn);
 
     bodyLayout->addWidget(searchWidget);
     bodyLayout->addStretch(1);
     bodyLayout->addWidget(splitter);
-    bodyLayout->addWidget(download);
 
     searchLay->addWidget(search);
-    // searchLay->addWidget(submit);
+    searchLay->addWidget(download);
 
     splitter->addWidget(infoWidget);
     splitter->addWidget(listWidget);
@@ -182,6 +199,15 @@ void MainWindow::initConnect() {
             }
         }
     });
+    QObject::connect(settingsBtn, &QPushButton::clicked, [this](){
+        SetDialog setDialog(this);
+        setDialog.exec();
+    });
+    QObject::connect(aboutBtn, &QPushButton::clicked, [this](){
+        AboutDialog aboutDialog(this);
+        aboutDialog.exec();
+    });
+
     QObject::connect(download, &QPushButton::clicked, [this](){
         // FileDownload fileDownload;
         // for (int i = 0; i < 2; ++i) {
@@ -190,8 +216,6 @@ void MainWindow::initConnect() {
         //     fileDownload.download(fullPath);
         // }
 
-        SetDialog setDialog(this);
-        setDialog.exec();
     });
 
     QObject::connect(tbn_close, &QPushButton::clicked, [this](){

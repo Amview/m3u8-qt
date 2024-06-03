@@ -35,6 +35,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         buttoncellwidget.h buttoncellwidget.cpp
         filedownload.h filedownload.cpp
         setdialog.h setdialog.cpp
+        aboutdialog.h aboutdialog.cpp
+        resource/res.qrc
 
     )
 # Define target properties for Android with Qt 6 as:

@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>github.png</file>
+        <file>logo.png</file>
+        <file>github-hover.png</file>
+        <file>about-hover.png</file>
+        <file>settings-hover.png</file>
+        <file>about.png</file>
+        <file>settings.png</file>
+    </qresource>
+</RCC>

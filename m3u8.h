@@ -1,39 +1,38 @@
 #ifndef M3U8_H
 #define M3U8_H
-#include "QtNetwork/qnetworkaccessmanager.h"
-#include "request.h"
-#define EXT_X_STREAM_INF "#EXT-X-STREAM-INF"
-#define EXTM3U "#EXTM3U"
-#define EXTINF "#EXTINF"
 
-#include <QString>
-#include <QStringList>
-class M3u8 {
-
+#include <QObject>
+#include <QMessageBox>
+#include "utils.h"
+using namespace std;
+class M3u8 : public QObject
+{
+    Q_OBJECT
 public:
-    QString url;
-    QString baseUrl;
-    QNetworkAccessManager manager;
-    QNetworkReply *reply;
-    Request request;
+    QObject *parent;
+    struct Segment
+    {
+        string url;
+        string duration;
+    };
 
-    void analysisM3u8();
-    bool checkIsBack();
-    void checkPlaySource();
-    int countUrls();
+    explicit M3u8(QObject *parent = nullptr);
 
-    // 备份源地址
+    std::vector<string> readM3u8(string url);
 
-    QStringList playUrls;
-    QStringList dataList;
-    QByteArray data;
+    bool checkIsPlaySource(string url);
+    bool checkIsPlaySource(std::vector<string> list);
 
-    bool isBackUrl;
-    // 是否是备份源
-    bool isBack;
-    M3u8(QString &url);
-    ~M3u8();
+    std::vector<string> analysePlayList(string url);
+    std::vector<string> analysePlayList(std::vector<string> list, Utils::UrlPart urlPart);
+
+    std::vector<string> splitUrl(string url);
+
+public slots:
+    void showMessage() {
+        // 这里是在主线程中安全地显示消息框
+        QMessageBox::information(nullptr, "Information", "This is an information message.");
+    }
 };
 
 #endif // M3U8_H
-

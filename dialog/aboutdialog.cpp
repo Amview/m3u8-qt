@@ -1,6 +1,6 @@
 #include "aboutdialog.h"
-#include "QtWidgets/qlabel.h"
-#include "QtWidgets/qpushbutton.h"
+#include "qlabel.h"
+#include "qpushbutton.h"
 #include "qdesktopservices.h"
 
 AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {

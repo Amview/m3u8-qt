@@ -1,7 +1,7 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
-#include "QtWidgets/qboxlayout.h"
+#include "qboxlayout.h"
 #include <QDialog>
 
 class AboutDialog : public QDialog

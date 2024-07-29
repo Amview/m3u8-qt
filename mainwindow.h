@@ -9,6 +9,8 @@
 #include <QLabel>
 #include <iostream>
 #include "component/pathselectedit.h"
+#include "component/customlineedit.h"
+#include "component/customtextedit.h"
 using namespace std;
 
 class MainWindow : public QMainWindow
@@ -16,9 +18,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    QTextEdit *urlEdit;
+    CustomTextEdit *urlEdit;
     PathSelectEdit *pathEdit;
-    QLineEdit *fileNameEdit;
+    CustomLineEdit *fileNameEdit;
     QPushButton *downBtn;
     QPushButton *playBtn;
     QProgressBar *bar;

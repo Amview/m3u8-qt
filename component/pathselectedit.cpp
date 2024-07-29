@@ -10,14 +10,21 @@ PathSelectEdit::PathSelectEdit(const QString &s, QWidget *parent)
 };
 
 void PathSelectEdit::initUi() {
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    this->setMinimumHeight(25);
     this->setStyleSheet(R"(
-        PathSelectEdit {
-            background-color: #f4f4f5;
-            width: 400px;
-            height: 25px;
-            padding-left: 5px;
+        QLineEdit {
+            border: 1px solid #dddfe5;
+            background-color: #f5f7fa;
             border-radius: 5px;
-            color: #606266;
+            padding-left: 5px;
         }
+        QLineEdit:hover {
+            //background-color: #fbfdff;
+            border: 1px solid #c1c4cb;
+        }
+//        QLineEdit:focus {
+//            border: 1px solid #5b5bf1;
+//        }
     )");
 }

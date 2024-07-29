@@ -21,6 +21,10 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
+        component/customlineedit.cpp
+        component/customlineedit.h
+        component/customtextedit.cpp
+        component/customtextedit.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

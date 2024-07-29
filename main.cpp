@@ -13,17 +13,9 @@ int main(int argc, char *argv[])
         QWidget{
             color:#606266;
         }
-        QTextEdit,QLineEdit {
-            border: 1px solid #dddfe5;
-            background-color: #fff;
-            border-radius: 5px;
-        }
-        QTextEdit:hover, QLineEdit:hover {
-            background-color: #fbfdff;
-            border: 1px solid #c1c4cb;
-        }
-        QTextEdit:focus, QLineEdit:focus {
-            border: 1px solid #5b5bf1;
+        QPushButton:disabled {
+            background-color: #f5f7fa;
+            color: #606266;
         }
         QPushButton#downBtn{
             height: 25px;

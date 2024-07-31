@@ -1,9 +1,8 @@
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "utils.h"
 #include <iostream>
 #include <string>
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
-#include <sstream>
 #include <fstream>
 #include <filesystem>
 using namespace std;
@@ -11,7 +10,7 @@ Utils::Utils(QObject *parent)
     : QObject{parent}
 {}
 
-vector<string> Utils::splitStr(string s, string split) {
+vector<string> Utils::splitStr(string s, const string& split) {
     std::vector<std::string> tokens;
     size_t start = 0, end = 0;
     while ((end = s.find(split, start)) != std::string::npos) {
@@ -46,14 +45,14 @@ Utils::UrlPart Utils::analyseUrl(string url) {
 
 }
 
-void Utils::printVector(vector<string> list) {
+void Utils::printVector(const vector<string>& list) {
     cout << "打印vector" << endl;
     for (const string& s : list) {
         cout << s << endl;
     }
 }
 
-void Utils::downloadTsFile(string filePath, string tsUrl) {
+void Utils::downloadTsFile(const string& filePath, const string& tsUrl) {
     std::ofstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << filePath << std::endl;
@@ -70,8 +69,9 @@ void Utils::downloadTsFile(string filePath, string tsUrl) {
     file.close();
 }
 
-void Utils::meargeFile(string dir, string filename) {
+void Utils::mergeFile(const string& dir, const string& filename) {
     filesystem::path dirPath(dir);
+    const string outputPath = filesystem::path(dir).append(filename).string();
     try {
         if (filesystem::exists(dirPath)) {
             std::vector<filesystem::path> files;
@@ -83,10 +83,11 @@ void Utils::meargeFile(string dir, string filename) {
             std::sort(files.begin(), files.end(), [](const filesystem::path& a, const filesystem::path& b) {
                 return a.filename() < b.filename();
             });
+
             for (const filesystem::path &p : files) {
                 string s = p.string();
                 if (s.substr(s.length() - 5, s.length()) == ".temp") {
-                    if (writeFile(dirPath.append(filename), s)) {
+                    if (writeFile(outputPath, s) > 0) {
                         filesystem::remove(p);
                     }
                 }
@@ -97,7 +98,7 @@ void Utils::meargeFile(string dir, string filename) {
     }
 }
 
-int Utils::writeFile(string outputPath, string sourceParh) {
+int Utils::writeFile(const string& outputPath, string sourceParh) {
     std::ofstream outputFile(outputPath, std::ios::out | std::ios::app);
     std::ifstream file(sourceParh);
     if (!file.is_open()) {

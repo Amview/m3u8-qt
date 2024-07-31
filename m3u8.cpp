@@ -1,5 +1,5 @@
-#include "QtWidgets/qapplication.h"
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+#include "QtWidgets/qapplication.h"
 #include "m3u8.h"
 #include "utils.h"
 #include <iostream>
@@ -48,12 +48,7 @@ std::vector<string> M3u8::analysePlayList(string url) {
 
 bool M3u8::checkIsPlaySource(string url) {
     std::vector<string> list = readM3u8(url);
-    for(const string& s : list) {
-        if (s.find("#EXT-X-STREAM-INF") != string::npos) {
-            return true;
-        }
-    }
-    return false;
+    return checkIsPlaySource(list);
 }
 
 bool M3u8::checkIsPlaySource(std::vector<string> list) {
@@ -64,13 +59,3 @@ bool M3u8::checkIsPlaySource(std::vector<string> list) {
     }
     return false;
 }
-
-
-
-
-
-
-
-
-
-

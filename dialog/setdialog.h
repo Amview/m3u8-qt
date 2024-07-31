@@ -1,7 +1,7 @@
 #ifndef SETDIALOG_H
 #define SETDIALOG_H
 
-#include "QtWidgets/qformlayout.h"
+#include "qformlayout.h"
 #include <QDialog>
 #include <QObject>
 class SetDialog : public QDialog

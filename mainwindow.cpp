@@ -23,8 +23,11 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QEventLoop>
+#include <mutex>
+#include <condition_variable>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include "component/progresscard.h"
 #include "component/pathselectedit.h"
 #include "component/customtextedit.h"
 extern "C" {
@@ -33,6 +36,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 using namespace std;
+mutex mtx;
+condition_variable cv;
+bool ready = true;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -62,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
     settingLay->addRow("文件名称：", fileNameEdit);
 
     // 下载位置
-    pathEdit = new PathSelectEdit("/Volumes/optane/download");
+    pathEdit = new PathSelectEdit("/Volumes/DATA/download");
     pathEdit->setReadOnly(true);
     pathEdit->setFixedWidth(405);
     settingLay->addRow("下载位置：", pathEdit);
@@ -79,44 +85,46 @@ MainWindow::MainWindow(QWidget *parent)
     typeWidget->setLayout(typeLayout);
     settingLay->addRow("文件格式：", typeWidget);
 
-    // 进度条
-    bar = new QProgressBar();
-    bar->hide();
+    card = new ProgressCard();
     // urlEdit->setText("https://devstreaming-cdn.apple.com/videos/streami®ng/examples/img_bipbop_adv_example_fmp4/master.m3u8");
     downBtn = new QPushButton("下载");
     downBtn->setObjectName("downBtn");
-
-    downInfo = new QLabel("");
-
     mainLay->addWidget(urlEdit);
     mainLay->addWidget(settingWidget, 1);
     mainLay->addStretch(1);
-    mainLay->addWidget(bar);
-    mainLay->addWidget(downInfo);
+    mainLay->addWidget(card);
     mainLay->addWidget(downBtn);
 
+
+    connect(card->pauseBtn, &QPushButton::clicked, [this]() {
+       ready = !ready;
+       if (!ready) {
+           this->card->downInfo->setText("暂停");
+           this->card->pauseBtn->setText("开始");
+       } else {
+           this->card->pauseBtn->setText("暂停");
+       }
+       cv.notify_all();
+    });
     connect(downBtn, &QPushButton::clicked, this, &MainWindow::download);
     connect(this, &MainWindow::downloadProcessChanged, this, [this](int i){
-        this->bar->setValue(i);
-        QString s = "正在下载：" + QString::number(i) + "/" + QString::number(this->bar->maximum());
-        this->downInfo->setText(s);
+        this->card->bar->setValue(i);
+        QString s = "正在下载：" + QString::number(i) + "/" + QString::number(this->card->bar->maximum());
+        this->card->downInfo->setText(s);
     });
     connect(this, &MainWindow::downloadFinish, this, [this](){
-        this->downInfo->setText("正在合并文件...");
-        Utils::meargeFile(this->pathEdit->text().toStdString(), this->fileNameEdit->text().toStdString() + ".ts");
-        this->downInfo->setText("下载完成...");
+        this->card->downInfo->setText("正在合并文件...");
+        Utils::mergeFile(this->pathEdit->text().toStdString(), this->fileNameEdit->text().toStdString() + ".ts");
+        this->card->downInfo->setText("下载完成...");
         QMessageBox::information(this, "", "下载完成");
     });
 }
 
 void MainWindow::download()
 {
-    this->bar->show();
-    this->bar->setValue(0);
-    this->downInfo->setText("");
-    this->downBtn->setDisabled(true);
     std::thread th([this, &th](){
         M3u8 m3u8;
+        unique_lock<mutex> lock(mtx);
         string url = this->urlEdit->toPlainText().toStdString();
         std::vector<string> urlInfos = m3u8.readM3u8(url);
         std::vector<string> segmentList;
@@ -129,17 +137,22 @@ void MainWindow::download()
             segmentList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
         }
         if (!segmentList.empty()) {
-            bar->setMaximum(segmentList.size());
-            bar->setMinimum(0);
+//            this->card->bar->setMaximum(segmentList.size());
+            this->card->bar->setMaximum(2);
+            this->card->bar->setMinimum(0);
             for (int i = 0; i < segmentList.size(); ++i) {
                 cout << "开始下载：" << i << endl;
+                cv.wait(lock, [](){
+                    return ready;
+                });
                 std::ostringstream formattedNumber;
                 formattedNumber << std::setw(3) << std::setfill('0') << i;
                 Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" + formattedNumber.str() + ".ts.temp", segmentList[i]);
                 emit downloadProcessChanged(i + 1);
-                // if (i == 10) {
-                //     break;
-                // }
+                 if (i == 2) {
+                     break;
+                 }
+
             }
             emit downloadFinish();
         }

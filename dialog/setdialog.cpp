@@ -1,7 +1,7 @@
 #include "setdialog.h"
-#include "QtCore/qjsondocument.h"
-#include "QtWidgets/qlabel.h"
-#include "QtWidgets/qlineedit.h"
+#include "qjsondocument.h"
+#include "qlabel.h"
+#include "qlineedit.h"
 #include "QFile"
 #include "QJsonObject"
 

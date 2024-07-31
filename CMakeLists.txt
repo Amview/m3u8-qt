@@ -25,6 +25,8 @@ set(PROJECT_SOURCES
         component/customlineedit.h
         component/customtextedit.cpp
         component/customtextedit.h
+        component/progresscard.cpp
+        component/progresscard.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

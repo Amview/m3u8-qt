@@ -11,11 +11,18 @@
 #include "component/pathselectedit.h"
 #include "component/customlineedit.h"
 #include "component/customtextedit.h"
+#include "component/progresscard.h"
 using namespace std;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    // 下载状态
+    enum DownloadState {
+        DOWNLOAD_RUNNING,
+        DOWNLOAD_PAUSED
+    };
+
 
 public:
     CustomTextEdit *urlEdit;
@@ -23,7 +30,7 @@ public:
     CustomLineEdit *fileNameEdit;
     QPushButton *downBtn;
     QPushButton *playBtn;
-    QProgressBar *bar;
+    ProgressCard *card;
     QLabel *downInfo;
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();

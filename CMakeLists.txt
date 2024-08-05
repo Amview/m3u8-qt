@@ -16,7 +16,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIRS})
 include_directories(/Users/hua/file/project/源码/cpp-httplib-0.16.0)
-include_directories(${FFMPEG_DIR}/include)
+#include_directories(${FFMPEG_DIR}/include)
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
@@ -27,6 +27,7 @@ set(PROJECT_SOURCES
         component/customtextedit.h
         component/progresscard.cpp
         component/progresscard.h
+        ThreadPool.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -57,13 +58,13 @@ endif()
 
 target_link_libraries(m3u8 PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(m3u8 PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-file(GLOB_RECURSE FFMPEG_LIBRARIES "${FFMPEG_DIR}/lib/*.dylib")
-# 遍历找到的所有库文件
-foreach(FFMPEG_LIB ${FFMPEG_LIBRARIES})
-    message(${FFMPEG_LIBRARIES})
-    # 添加库到目标
-    target_link_libraries(m3u8 PRIVATE ${FFMPEG_LIB})
-endforeach()
+#file(GLOB_RECURSE FFMPEG_LIBRARIES "${FFMPEG_DIR}/lib/*.dylib")
+## 遍历找到的所有库文件
+#foreach(FFMPEG_LIB ${FFMPEG_LIBRARIES})
+#    message(${FFMPEG_LIBRARIES})
+#    # 添加库到目标
+#    target_link_libraries(m3u8 PRIVATE ${FFMPEG_LIB})
+#endforeach()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

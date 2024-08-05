@@ -13,7 +13,6 @@ public:
         string path;
         string urlExcludeLastPart;
     };
-
     explicit Utils(QObject *parent = nullptr);
     static vector<string> splitStr(string s, const string& split);
     static UrlPart analyseUrl(string url);
@@ -22,22 +21,6 @@ public:
     static void mergeFile(const string& dir, const string& filename);
     static int writeFile(const string& outputPath, string sourceParh);
     static int getCurrentTimestamp();
-
-
-    // static std::map<std::string, T> objectMap;
-
-    // static void addSwapObject(string key, T) {
-    //     objectMap.insert({key, T});
-    // };
-
-    // static T getSwapObject(string key) {
-    //     auto it = objectMap.find(key);
-    //     if (it != objectMap.end()) {
-    //         return it->second;
-    //     }
-    //     return nullptr;
-    // };
-
 signals:
 };
 

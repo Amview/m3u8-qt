@@ -27,14 +27,15 @@
 #include <condition_variable>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include "ThreadPool.h"
 #include "component/progresscard.h"
 #include "component/pathselectedit.h"
 #include "component/customtextedit.h"
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
-}
+//extern "C" {
+//#include <libavformat/avformat.h>
+//#include <libavcodec/avcodec.h>
+//#include <libswscale/swscale.h>
+//}
 using namespace std;
 mutex mtx;
 condition_variable cv;
@@ -86,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     settingLay->addRow("文件格式：", typeWidget);
 
     card = new ProgressCard();
+    card->hide();
     // urlEdit->setText("https://devstreaming-cdn.apple.com/videos/streami®ng/examples/img_bipbop_adv_example_fmp4/master.m3u8");
     downBtn = new QPushButton("下载");
     downBtn->setObjectName("downBtn");
@@ -106,7 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
        }
        cv.notify_all();
     });
-    connect(downBtn, &QPushButton::clicked, this, &MainWindow::download);
+    connect(downBtn, &QPushButton::clicked, this, &MainWindow::download1);
     connect(this, &MainWindow::downloadProcessChanged, this, [this](int i){
         this->card->bar->setValue(i);
         QString s = "正在下载：" + QString::number(i) + "/" + QString::number(this->card->bar->maximum());
@@ -120,11 +122,63 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-void MainWindow::download()
+void MainWindow::download() {
+    card->show();
+    future<vector<string>> f = async(std::launch::async, [this](){
+        M3u8 m3u8;
+        std::vector<string> segmentList;
+        string url = this->urlEdit->toPlainText().toStdString();
+        std::vector<string> urlInfos = m3u8.readM3u8(url);
+        Utils::printVector(urlInfos);
+        if (m3u8.checkIsPlaySource(urlInfos)) {
+            std::vector<string> playSourceList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
+            if (!playSourceList.empty()) {
+                segmentList = m3u8.analysePlayList(playSourceList[0]);
+            }
+        } else {
+            segmentList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
+        }
+        return segmentList;
+    });
+    auto status = f.wait_for(chrono::seconds(10));
+
+    if (status == future_status::timeout) {
+        this->card->downInfo->setText("连接超时...");
+        cout << "连接超时";
+        return;
+    } else if (status == future_status::ready) {
+        this->card->downInfo->setText("请求成功...");
+        vector<string> segmentList = f.get();
+        if (!segmentList.empty()) {
+            std::thread th([this, &segmentList]() {
+                this->card->bar->setMaximum(2);
+                this->card->bar->setMinimum(0);
+
+                unique_lock<mutex> lock(mtx);
+                for (int i = 0; i < segmentList.size(); ++i) {
+                    cout << "开始下载：" << i << endl;
+                    cv.wait(lock, [](){
+                        return ready;
+                    });
+                    std::ostringstream formattedNumber;
+                    formattedNumber << std::setw(3) << std::setfill('0') << i;
+                    Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" + formattedNumber.str() + ".ts.temp", segmentList[i]);
+                    emit downloadProcessChanged(i + 1);
+                    if (i == 2) {
+                        break;
+                    }
+                }
+            });
+//            th.join();
+        }
+    }
+}
+
+void MainWindow::download1()
 {
+    this->card->show();
     std::thread th([this, &th](){
         M3u8 m3u8;
-        unique_lock<mutex> lock(mtx);
         string url = this->urlEdit->toPlainText().toStdString();
         std::vector<string> urlInfos = m3u8.readM3u8(url);
         std::vector<string> segmentList;
@@ -137,22 +191,19 @@ void MainWindow::download()
             segmentList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
         }
         if (!segmentList.empty()) {
-//            this->card->bar->setMaximum(segmentList.size());
-            this->card->bar->setMaximum(2);
+            this->card->bar->setMaximum(segmentList.size());
             this->card->bar->setMinimum(0);
+            unique_lock<mutex> lock(mtx);
             for (int i = 0; i < segmentList.size(); ++i) {
                 cout << "开始下载：" << i << endl;
+                std::ostringstream formattedNumber;
+                formattedNumber << std::setw(3) << std::setfill('0') << i;
+                Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" +
+                    formattedNumber.str() + ".ts.temp", segmentList[i]);
                 cv.wait(lock, [](){
                     return ready;
                 });
-                std::ostringstream formattedNumber;
-                formattedNumber << std::setw(3) << std::setfill('0') << i;
-                Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" + formattedNumber.str() + ".ts.temp", segmentList[i]);
                 emit downloadProcessChanged(i + 1);
-                 if (i == 2) {
-                     break;
-                 }
-
             }
             emit downloadFinish();
         }

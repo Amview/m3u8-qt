@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     urlEdit->setMaximumHeight(60);
     // 设置焦点策略为 Qt::NoFocus，这意味着文本编辑器不会自动获得焦点
     urlEdit->setFocusPolicy(Qt::ClickFocus);
-    urlEdit->setText("https://bfikuncdn.com/20240714/TQoQPOhr/index.m3u8");
+//    urlEdit->setText("https://bfikuncdn.com/20240714/TQoQPOhr/index.m3u8");
     urlEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // 设置
@@ -96,7 +96,8 @@ MainWindow::MainWindow(QWidget *parent)
     dWidget->setLayout(dLayout);
 
     // 下载位置
-    pathEdit = new PathSelectEdit("/Volumes/DATA/download");
+//    pathEdit = new PathSelectEdit("/Volumes/optane/download");
+    pathEdit = new PathSelectEdit();
     pathEdit->setReadOnly(true);
     QLabel *pathLabel = new QLabel("下载位置：");
     pathLabel->setFixedWidth(80);
@@ -138,7 +139,7 @@ MainWindow::MainWindow(QWidget *parent)
        }
        cv.notify_all();
     });
-    connect(downBtn, &QPushButton::clicked, this, &MainWindow::download1);
+    connect(downBtn, &QPushButton::clicked, this, &MainWindow::download);
     connect(this, &MainWindow::downloadProcessChanged, this, [this](int i){
         this->card->bar->setValue(i);
         QString s = "正在下载：" + QString::number(i) + "/" + QString::number(this->card->bar->maximum());
@@ -152,59 +153,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-void MainWindow::download() {
-    card->show();
-    future<vector<string>> f = async(std::launch::async, [this](){
-        M3u8 m3u8;
-        std::vector<string> segmentList;
-        string url = this->urlEdit->toPlainText().toStdString();
-        std::vector<string> urlInfos = m3u8.readM3u8(url);
-        Utils::printVector(urlInfos);
-        if (m3u8.checkIsPlaySource(urlInfos)) {
-            std::vector<string> playSourceList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
-            if (!playSourceList.empty()) {
-                segmentList = m3u8.analysePlayList(playSourceList[0]);
-            }
-        } else {
-            segmentList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
-        }
-        return segmentList;
-    });
-    auto status = f.wait_for(chrono::seconds(10));
-
-    if (status == future_status::timeout) {
-        this->card->downInfo->setText("连接超时...");
-        cout << "连接超时";
-        return;
-    } else if (status == future_status::ready) {
-        this->card->downInfo->setText("请求成功...");
-        vector<string> segmentList = f.get();
-        if (!segmentList.empty()) {
-            std::thread th([this, &segmentList]() {
-                this->card->bar->setMaximum(2);
-                this->card->bar->setMinimum(0);
-
-                unique_lock<mutex> lock(mtx);
-                for (int i = 0; i < segmentList.size(); ++i) {
-                    cout << "开始下载：" << i << endl;
-                    cv.wait(lock, [](){
-                        return ready;
-                    });
-                    std::ostringstream formattedNumber;
-                    formattedNumber << std::setw(3) << std::setfill('0') << i;
-                    Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" + formattedNumber.str() + ".ts.temp", segmentList[i]);
-                    emit downloadProcessChanged(i + 1);
-                    if (i == 2) {
-                        break;
-                    }
-                }
-            });
-//            th.join();
-        }
-    }
-}
-
-void MainWindow::download1()
+void MainWindow::download()
 {
     this->card->show();
     this->card->downInfo->setText("下载中...");
@@ -224,13 +173,13 @@ void MainWindow::download1()
         if (!segmentList.empty()) {
             this->card->bar->setMaximum(segmentList.size());
             this->card->bar->setMinimum(0);
+            string downloadPath = this->pathEdit->text().toStdString();
             unique_lock<mutex> lock(mtx);
             for (int i = 0; i < segmentList.size(); ++i) {
                 cout << "开始下载：" << i << endl;
                 std::ostringstream formattedNumber;
                 formattedNumber << std::setw(3) << std::setfill('0') << i;
-                Utils::downloadTsFile(this->pathEdit->text().toStdString() + "/" +
-                    formattedNumber.str() + ".ts.temp", segmentList[i]);
+                Utils::downloadTsFile(downloadPath + "/" + formattedNumber.str() + ".ts.temp", segmentList[i]);
                 cv.wait(lock, [](){
                     return ready;
                 });

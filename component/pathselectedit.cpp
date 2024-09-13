@@ -2,6 +2,8 @@
 
 PathSelectEdit::PathSelectEdit(QWidget *parent) : QLineEdit(parent){
     initUi();
+    QStringList downloadDirs = QStandardPaths::standardLocations(QStandardPaths::DownloadLocation);
+    setText(downloadDirs.first());
 }
 
 PathSelectEdit::PathSelectEdit(const QString &s, QWidget *parent)

@@ -36,7 +36,6 @@ public:
     ~MainWindow();
 
     void download();
-    void download1();
 signals:
     void downloadProcessChanged(int i);
     void downloadFinish();

@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "tools/utils.h"
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "mainwindow.h"
 #include <QPushButton>
@@ -15,19 +15,20 @@
 #include <QRadioButton>
 #include <QLineEdit>
 #include <QFileDialog>
-#include "utils.h"
-#include "m3u8.h"
+#include "tools/utils.h"
+#include "tools/m3u8.h"
 #include <httplib.h>
 #include <iostream>
 #include <QProgressBar>
 #include <QThread>
 #include <QThreadPool>
 #include <QEventLoop>
+#include <QDesktopServices>
 #include <mutex>
 #include <condition_variable>
 #include <QMessageBox>
 #include <QStandardPaths>
-#include "ThreadPool.h"
+#include "tools/threadpool.h"
 #include "component/progresscard.h"
 #include "component/pathselectedit.h"
 #include "component/customtextedit.h"
@@ -41,13 +42,27 @@ mutex mtx;
 condition_variable cv;
 bool ready = true;
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : CFramelessWindow(parent)
 {
     QVBoxLayout *mainLay = new QVBoxLayout();
-    mainLay->setContentsMargins(10, 10, 10, 10);
+    mainLay->setContentsMargins(10, 30, 10, 10);
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(mainLay);
     setCentralWidget(mainWidget);
+
+#if defined(Q_OS_MACOS)
+    QPushButton *githubBtn = new QPushButton(this);
+    githubBtn->setFixedSize(20, 20);
+    githubBtn->setIconSize(QSize(20, 20));
+    githubBtn->setToolTip("https://github.com/Amview");
+    githubBtn->setCursor(Qt::PointingHandCursor);
+    githubBtn->setIcon(QIcon(":/img/github2.png"));
+    githubBtn->move(75, 4);
+    githubBtn->setStyleSheet("border: none");
+    connect(githubBtn, &QPushButton::clicked, []() {
+        QDesktopServices::openUrl(QUrl(QString::fromStdString("https://github.com/Amview/m3u8-qt")));
+    });
+#endif
 
     urlEdit = new CustomTextEdit();
     urlEdit->setMaximumHeight(60);
@@ -57,34 +72,43 @@ MainWindow::MainWindow(QWidget *parent)
     urlEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // 设置
-    QFormLayout *settingLay = new QFormLayout();
-    settingLay->setContentsMargins(0,0,0,0);
-    settingLay->setFormAlignment(Qt::AlignLeft);
-    QWidget *settingWidget = new QWidget();
-    settingWidget->setLayout(settingLay);
+    QHBoxLayout *namel = new QHBoxLayout();
+    namel->setContentsMargins(0,0,0,0);
+    QWidget *nameWidget = new QWidget();
+    nameWidget->setLayout(namel);
     // 文件名
     fileNameEdit = new CustomLineEdit();
-    fileNameEdit->setFixedWidth(405);
     fileNameEdit->setText(QString::number(Utils::getCurrentTimestamp()));
-    settingLay->addRow("文件名称：", fileNameEdit);
+    QLabel *nameLabel = new QLabel("文件名称：");
+    nameLabel->setFixedWidth(80);
+    namel->addWidget(nameLabel);
+    namel->addWidget(fileNameEdit);
+
+    QHBoxLayout *dLayout = new QHBoxLayout();
+    dLayout->setContentsMargins(0,0,0,0);
+    QWidget *dWidget = new QWidget();
+    dWidget->setLayout(dLayout);
 
     // 下载位置
     pathEdit = new PathSelectEdit("/Volumes/DATA/download");
     pathEdit->setReadOnly(true);
-    pathEdit->setFixedWidth(405);
-    settingLay->addRow("下载位置：", pathEdit);
+    QLabel *pathLabel = new QLabel("下载位置：");
+    pathLabel->setFixedWidth(80);
+    dLayout->addWidget(pathLabel);
+    dLayout->addWidget(pathEdit);
 
-    // 文件格式
-    QRadioButton *fs_option = new QRadioButton("ts");
-    fs_option->setChecked(true);
-    QRadioButton *mp4_option = new QRadioButton("mp4");
-    QHBoxLayout *typeLayout = new QHBoxLayout();
-    typeLayout->setContentsMargins(0,0,0,0);
-    QWidget *typeWidget = new QWidget();
-    typeLayout->addWidget(fs_option);
-    typeLayout->addWidget(mp4_option);
-    typeWidget->setLayout(typeLayout);
-    settingLay->addRow("文件格式：", typeWidget);
+//    settingLay->addRow("下载位置：", pathEdit);
+// 文件格式
+//    QRadioButton *fs_option = new QRadioButton("ts");
+//    fs_option->setChecked(true);
+//    QRadioButton *mp4_option = new QRadioButton("mp4");
+//    QHBoxLayout *typeLayout = new QHBoxLayout();
+//    typeLayout->setContentsMargins(0,0,0,0);
+//    QWidget *typeWidget = new QWidget();
+//    typeLayout->addWidget(fs_option);
+//    typeLayout->addWidget(mp4_option);
+//    typeWidget->setLayout(typeLayout);
+//    settingLay->addRow("文件格式：", typeWidget);
 
     card = new ProgressCard();
     card->hide();
@@ -92,11 +116,11 @@ MainWindow::MainWindow(QWidget *parent)
     downBtn = new QPushButton("下载");
     downBtn->setObjectName("downBtn");
     mainLay->addWidget(urlEdit);
-    mainLay->addWidget(settingWidget, 1);
+    mainLay->addWidget(nameWidget);
+    mainLay->addWidget(dWidget);
     mainLay->addStretch(1);
     mainLay->addWidget(card);
     mainLay->addWidget(downBtn);
-
 
     connect(card->pauseBtn, &QPushButton::clicked, [this]() {
        ready = !ready;
@@ -177,6 +201,7 @@ void MainWindow::download() {
 void MainWindow::download1()
 {
     this->card->show();
+    this->card->downInfo->setText("下载中...");
     std::thread th([this, &th](){
         M3u8 m3u8;
         string url = this->urlEdit->toPlainText().toStdString();

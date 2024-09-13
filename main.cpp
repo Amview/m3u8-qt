@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
             border: 1px solid #c1c4cb;
         }
     )");
-    w.setFixedSize(500, 500);
+//    w.setFixedSize(500, 500);
+    w.setMinimumSize(500, 500);
     w.setWindowTitle("m3u8下载器");
     w.show();
     return a.exec();

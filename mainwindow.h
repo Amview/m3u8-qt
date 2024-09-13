@@ -12,9 +12,10 @@
 #include "component/customlineedit.h"
 #include "component/customtextedit.h"
 #include "component/progresscard.h"
+#include "framelesswindow/framelesswindow.h"
 using namespace std;
 
-class MainWindow : public QMainWindow
+class MainWindow : public CFramelessWindow
 {
     Q_OBJECT
     // 下载状态
@@ -22,7 +23,6 @@ class MainWindow : public QMainWindow
         DOWNLOAD_RUNNING,
         DOWNLOAD_PAUSED
     };
-
 
 public:
     CustomTextEdit *urlEdit;

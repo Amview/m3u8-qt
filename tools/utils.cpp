@@ -10,7 +10,7 @@ Utils::Utils(QObject *parent)
     : QObject{parent}
 {}
 
-vector<string> Utils::splitStr(string s, const string& split) {
+vector<string> Utils::splitStr(const string& s, const string& split) {
     std::vector<std::string> tokens;
     size_t start = 0, end = 0;
     while ((end = s.find(split, start)) != std::string::npos) {
@@ -21,7 +21,7 @@ vector<string> Utils::splitStr(string s, const string& split) {
     return tokens;
 }
 
-Utils::UrlPart Utils::analyseUrl(string url) {
+Utils::UrlPart Utils::analyseUrl(const string& url) {
     Utils::UrlPart urlPart;
     vector<string> parts = splitStr(url, "/");
     vector<string> temp;
@@ -98,7 +98,7 @@ void Utils::mergeFile(const string& dir, const string& filename) {
     }
 }
 
-int Utils::writeFile(const string& outputPath, string sourceParh) {
+int Utils::writeFile(const string& outputPath, const string& sourceParh) {
     std::ofstream outputFile(outputPath, std::ios::out | std::ios::app);
     std::ifstream file(sourceParh);
     if (!file.is_open()) {

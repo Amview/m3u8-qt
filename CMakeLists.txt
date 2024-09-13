@@ -27,15 +27,19 @@ set(PROJECT_SOURCES
         component/customtextedit.h
         component/progresscard.cpp
         component/progresscard.h
-        ThreadPool.h
+        tools/threadpool.h
+        framelesswindow/framelesswindow.h
+        framelesswindow/framelesswindow.cpp
+        framelesswindow/framelesswindow.mm
+        resource/res.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(m3u8
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        utils.h utils.cpp
-        m3u8.h m3u8.cpp
+            tools/utils.h tools/utils.cpp
+            tools/m3u8.h tools/m3u8.cpp
         component/pathselectedit.h component/pathselectedit.cpp
     )
 # Define target properties for Android with Qt 6 as:

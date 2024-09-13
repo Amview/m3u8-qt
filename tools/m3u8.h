@@ -10,23 +10,18 @@ class M3u8 : public QObject
     Q_OBJECT
 public:
     QObject *parent;
-    struct Segment
-    {
-        string url;
-        string duration;
-    };
 
     explicit M3u8(QObject *parent = nullptr);
 
-    std::vector<string> readM3u8(string url);
+    std::vector<string> readM3u8(const string& url);
 
-    bool checkIsPlaySource(string url);
-    bool checkIsPlaySource(std::vector<string> list);
+    bool checkIsPlaySource(const string& url);
+    bool checkIsPlaySource(const std::vector<string>& list);
 
-    std::vector<string> analysePlayList(string url);
-    std::vector<string> analysePlayList(std::vector<string> list, Utils::UrlPart urlPart);
+    std::vector<string> analysePlayList(const string& url);
+    std::vector<string> analysePlayList(const std::vector<string>& list, const Utils::UrlPart& urlPart);
 
-    std::vector<string> splitUrl(string url);
+    std::vector<string> splitUrl(const string& url);
 
 public slots:
     void showMessage() {

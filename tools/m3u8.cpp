@@ -1,5 +1,5 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "QtWidgets/qapplication.h"
+#include "qapplication.h"
 #include "m3u8.h"
 #include "utils.h"
 #include <iostream>
@@ -13,7 +13,7 @@ M3u8::M3u8(QObject *parent)
     this->parent = parent;
 }
 
-std::vector<string> M3u8::readM3u8(string url) {
+std::vector<string> M3u8::readM3u8(const string& url) {
     Utils::UrlPart urlPart = Utils::analyseUrl(url);
     httplib::Client cli(urlPart.host);
     httplib::Result res = cli.Get(urlPart.path);
@@ -25,7 +25,7 @@ std::vector<string> M3u8::readM3u8(string url) {
     return lines;
 }
 
-std::vector<string> M3u8::analysePlayList(std::vector<string> list, Utils::UrlPart urlPart) {
+std::vector<string> M3u8::analysePlayList(const std::vector<string>& list, const Utils::UrlPart& urlPart) {
     std::vector<string> playList;
     for (int i = 0; i < list.size(); ++i) {
         if (!list[i].empty() && list[i].substr(0, 1) != "#") {
@@ -40,18 +40,18 @@ std::vector<string> M3u8::analysePlayList(std::vector<string> list, Utils::UrlPa
     return playList;
 }
 
-std::vector<string> M3u8::analysePlayList(string url) {
+std::vector<string> M3u8::analysePlayList(const string& url) {
     std::vector<string> items = readM3u8(url);
     Utils::UrlPart urlPart = Utils::analyseUrl(url);
     return analysePlayList(items, urlPart);
 }
 
-bool M3u8::checkIsPlaySource(string url) {
+bool M3u8::checkIsPlaySource(const string& url) {
     std::vector<string> list = readM3u8(url);
     return checkIsPlaySource(list);
 }
 
-bool M3u8::checkIsPlaySource(std::vector<string> list) {
+bool M3u8::checkIsPlaySource(const std::vector<string>& list) {
     for(const string& s : list) {
         if (s.find("#EXT-X-STREAM-INF") != string::npos) {
             return true;

@@ -45,23 +45,29 @@ MainWindow::MainWindow(QWidget *parent)
     : CFramelessWindow(parent)
 {
     QVBoxLayout *mainLay = new QVBoxLayout();
-    mainLay->setContentsMargins(10, 30, 10, 10);
+    mainLay->setContentsMargins(10, 0, 10, 10);
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(mainLay);
     setCentralWidget(mainWidget);
 
 #if defined(Q_OS_MACOS)
-    QPushButton *githubBtn = new QPushButton(this);
+    QHBoxLayout *titleLayout = new QHBoxLayout();
+    titleLayout->setContentsMargins(0, 5, 0, 0);
+    QWidget *titleWidget = new QWidget();
+    titleWidget->setLayout(titleLayout);
+    QPushButton *githubBtn = new QPushButton();
     githubBtn->setFixedSize(20, 20);
     githubBtn->setIconSize(QSize(20, 20));
     githubBtn->setToolTip("https://github.com/Amview");
     githubBtn->setCursor(Qt::PointingHandCursor);
     githubBtn->setIcon(QIcon(":/img/github2.png"));
-    githubBtn->move(75, 4);
     githubBtn->setStyleSheet("border: none");
+    titleLayout->addStretch(1);
+    titleLayout->addWidget(githubBtn);
     connect(githubBtn, &QPushButton::clicked, []() {
         QDesktopServices::openUrl(QUrl(QString::fromStdString("https://github.com/Amview/m3u8-qt")));
     });
+    mainLay->addWidget(titleWidget);
 #endif
 
     urlEdit = new CustomTextEdit();

@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QMessageBox>
 #include <QThread>
 #include <QLabel>
 #include <iostream>
@@ -39,6 +40,14 @@ public:
 signals:
     void downloadProcessChanged(int i);
     void downloadFinish();
+
+public slots:
+    void showMessage(const string& text) {
+        QMessageBox box;
+        box.setText(QString::fromStdString(text));
+        box.exec();
+//        QMessageBox::information(nullptr, "", "请输入正确url");
+    };
 
 };
 

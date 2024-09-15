@@ -15,12 +15,13 @@ M3u8::M3u8(QObject *parent)
 
 std::vector<string> M3u8::readM3u8(const string& url) {
     Utils::UrlPart urlPart = Utils::analyseUrl(url);
+    std::vector<string> lines;
     httplib::Client cli(urlPart.host);
     httplib::Result res = cli.Get(urlPart.path);
-    std::cout << res->status << std::endl;
-    std::vector<string> lines;
     if (res && res->status == 200) {
         lines = Utils::splitStr(res->body, "\n");
+    } else {
+        emit occurError(httplib::to_string(res.error()));
     }
     return lines;
 }

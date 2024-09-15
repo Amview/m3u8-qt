@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include "tools/utils.h"
 #include "tools/m3u8.h"
+#include "tools/string_utils.h"
 #include <httplib.h>
 #include <iostream>
 #include <QProgressBar>
@@ -74,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     urlEdit->setMaximumHeight(60);
     // 设置焦点策略为 Qt::NoFocus，这意味着文本编辑器不会自动获得焦点
     urlEdit->setFocusPolicy(Qt::ClickFocus);
-//    urlEdit->setText("https://bfikuncdn.com/20240714/TQoQPOhr/index.m3u8");
+    urlEdit->setText("https://bfikuncdn.com/20240714/TQoQPOhr/index.m3u8");
     urlEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // 设置
@@ -96,8 +97,8 @@ MainWindow::MainWindow(QWidget *parent)
     dWidget->setLayout(dLayout);
 
     // 下载位置
-//    pathEdit = new PathSelectEdit("/Volumes/optane/download");
-    pathEdit = new PathSelectEdit();
+//    pathEdit = new PathSelectEdit();
+    pathEdit = new PathSelectEdit("/Volumes/optane/download");
     pathEdit->setReadOnly(true);
     QLabel *pathLabel = new QLabel("下载位置：");
     pathLabel->setFixedWidth(80);
@@ -155,20 +156,31 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::download()
 {
-    this->card->show();
-    this->card->downInfo->setText("下载中...");
-    std::thread th([this, &th](){
-        M3u8 m3u8;
-        string url = this->urlEdit->toPlainText().toStdString();
-        std::vector<string> urlInfos = m3u8.readM3u8(url);
+    string url = this->urlEdit->toPlainText().toStdString();
+    if (url.empty() || (!StringUtils::startWidth(url, "http://")
+            && !StringUtils::startWidth(url, "https://"))) {
+        QMessageBox::information(nullptr, "", "请输入正确url");
+        return;
+    }
+    std::thread th([this, url](){
+        M3u8 *m3u8 = new M3u8();
+        connect(m3u8, &M3u8::occurError, this, &MainWindow::showMessage);
+        std::vector<string> urlInfos;
+        urlInfos = m3u8->readM3u8(url);
+        if (urlInfos.empty()) {
+            return;
+        }
+        this->card->show();
+        this->card->downInfo->setText("下载中...");
+        this->downBtn->setDisabled(true);
         std::vector<string> segmentList;
-        if (m3u8.checkIsPlaySource(urlInfos)) {
-            std::vector<string> playSourceList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
+        if (m3u8->checkIsPlaySource(urlInfos)) {
+            std::vector<string> playSourceList = m3u8->analysePlayList(urlInfos, Utils::analyseUrl(url));
             if (!playSourceList.empty()) {
-                segmentList = m3u8.analysePlayList(playSourceList[0]);
+                segmentList = m3u8->analysePlayList(playSourceList[0]);
             }
         } else {
-            segmentList = m3u8.analysePlayList(urlInfos, Utils::analyseUrl(url));
+            segmentList = m3u8->analysePlayList(urlInfos, Utils::analyseUrl(url));
         }
         if (!segmentList.empty()) {
             this->card->bar->setMaximum(segmentList.size());

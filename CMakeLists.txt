@@ -32,6 +32,8 @@ set(PROJECT_SOURCES
         framelesswindow/framelesswindow.cpp
         framelesswindow/framelesswindow.mm
         resource/res.qrc
+        tools/string_utils.cpp
+        tools/string_utils.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

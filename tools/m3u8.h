@@ -23,11 +23,8 @@ public:
 
     std::vector<string> splitUrl(const string& url);
 
-public slots:
-    void showMessage() {
-        // 这里是在主线程中安全地显示消息框
-        QMessageBox::information(nullptr, "Information", "This is an information message.");
-    }
+signals:
+    void occurError(const string& text);
 };
 
 #endif // M3U8_H
